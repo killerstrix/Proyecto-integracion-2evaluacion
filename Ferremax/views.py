@@ -7,10 +7,15 @@ import json
 
 from django.conf import settings
 from django.http import JsonResponse
-from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
+from transbank.webpay.webpay_plus.transaction import (
+    Transaction,
+    WebpayOptions,
+    IntegrationCommerceCodes,
+    IntegrationApiKeys,
+)
 from transbank.common.integration_type import IntegrationType
-# Create your views here.
 
+# Create your views here.
 
 
 def index(request):
@@ -55,10 +60,7 @@ def crud_cuentas(request):
         )
         emp.save()
 
-        context = {
-            "mensaje": "Exito"
-
-        }
+        context = {"mensaje": "Exito"}
         return render(request, "core/resultado.html", context)
 
 
@@ -94,31 +96,24 @@ def crud_productos(request):
             stockProducto=sotck_producto,
             descripcionProducto=descripcion_producto,
             precioProducto=precio_producto,
-            imagenProducto = imagen_producto,
+            imagenProducto=imagen_producto,
             categoria=objCategoria,
             marca=objMarca,
             proveedor=objProveedor,
         )
         cli.save()
 
-        context = {
-            "mensaje": "Exito"
-
-        }
+        context = {"mensaje": "Exito"}
         return render(request, "core/resultado.html", context)
 
 
 def resultado(request):
-    context = {
-
-    }
+    context = {}
     return render(request, "core/resultado.html", context)
 
 
 def pedido(request):
-    context = {
-
-    }
+    context = {}
     return render(request, "core/pedido.html", context)
 
 
@@ -130,29 +125,26 @@ def Login(request):
         if nombre_usuario and contraseña:
             try:
                 usu = usuario.objects.get(
-                    nombreUsuario=nombre_usuario, contraseña=contraseña)
+                    nombreUsuario=nombre_usuario, contraseña=contraseña
+                )
             except usuario.DoesNotExist:
                 usu = None
 
             if usu is not None:
                 request.session["NombreUsuario"] = nombre_usuario
-                context = {
-                    "mensaje": "Inicio de sesión exitoso"
-                }
-                return render(request, "core/resultado.html", context)
+                return render(request, "core/index.html")
             else:
-                context = {
-                    "mensaje": "Usuario o contraseña incorrecta"
-                }
-                return render(request, "core/resultado.html", context)
+                return render(request, "core/Login.html")
 
-        context = {"mensaje": "Usuario y/o Contraseña incorrecta 2"}
-        return render(request, "core/resultado.html", context)
+        return render(
+            request,
+            "core/Login.html",
+        )
 
-    context = {
-
-    }
-    return render(request, "core/Login.html", context)
+    return render(
+        request,
+        "core/Login.html",
+    )
 
 
 def registro(request):
@@ -171,21 +163,15 @@ def registro(request):
                 contraseña=contraseña1,
             )
             usu.save()
-
-            context = {
-                "mensaje": "Registro exitoso"
-            }
-            return render(request, "core/resultado.html", context)
+            return render(request, "core/Login.html")
 
         else:
-            context = {
-                "mensaje": "Las contraseña no son iguales"
-            }
-            return render(request, "core/resultado.html", context)
+            return render(
+                request,
+                "core/registro.html",
+            )
 
-    context = {
-
-    }
+    context = {}
     return render(request, "core/registro.html", context)
 
 
@@ -193,46 +179,52 @@ def pago(request):
     buy_order = request.POST["ordenCompra"]
     session_id = request.POST["idSesion"]
     amount = request.POST["monto"]
-    return_url = 'http://127.0.0.1:8000/retorno_pago'
+    return_url = "http://127.0.0.1:8000/retorno_pago"
 
-    transaction = Transaction(WebpayOptions(
-        IntegrationCommerceCodes.WEBPAY_PLUS, 
-        IntegrationApiKeys.WEBPAY, 
-        IntegrationType.TEST))
-    
+    transaction = Transaction(
+        WebpayOptions(
+            IntegrationCommerceCodes.WEBPAY_PLUS,
+            IntegrationApiKeys.WEBPAY,
+            IntegrationType.TEST,
+        )
+    )
+
     response = transaction.create(buy_order, session_id, amount, return_url)
-    token = response['token']
-    url = response['url']
-    
-    return render(request, 'core/pago.html', {'url': url, 'token': token})
+    token = response["token"]
+    url = response["url"]
+
+    return render(request, "core/pago.html", {"url": url, "token": token})
 
 
 def retorno_pago(request):
-    token = request.GET.get('token_ws')
-    
-    transaction = Transaction(WebpayOptions(
-        IntegrationCommerceCodes.WEBPAY_PLUS, 
-        IntegrationApiKeys.WEBPAY, 
-        IntegrationType.TEST))
+    token = request.GET.get("token_ws")
+
+    transaction = Transaction(
+        WebpayOptions(
+            IntegrationCommerceCodes.WEBPAY_PLUS,
+            IntegrationApiKeys.WEBPAY,
+            IntegrationType.TEST,
+        )
+    )
 
     response = transaction.commit(token)
-    
-    status = response['status']
-    amount = response['amount']
-    buy_order = response['buy_order']
-    
+
+    status = response["status"]
+    amount = response["amount"]
+    buy_order = response["buy_order"]
+
     context = {
-        'status': status,
-        'amount': amount,
-        'buy_order': buy_order,
+        "status": status,
+        "amount": amount,
+        "buy_order": buy_order,
     }
-    
-    return render(request, 'core/retorno_pago.html', context)
+
+    return render(request, "core/retorno_pago.html", context)
 
 
 def productos(request):
-    url = 'http://localhost:8000/api/productos'
-    
+    url = "http://localhost:8000/api/productos"
+
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -240,9 +232,7 @@ def productos(request):
     except requests.exceptions.RequestException as e:
         print(f"Error al hacer la solicitud a la API: {e}")
         datos = None
-    
-    context = {
-        'productos': datos
-    }
-    
-    return render(request, 'core/productos.html', context)
+
+    context = {"productos": datos}
+
+    return render(request, "core/productos.html", context)
